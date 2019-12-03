@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-msgserver/utils/rabbitmq"
 	"time"
+	_ "errors"
 )
 
 type RecvPro struct {

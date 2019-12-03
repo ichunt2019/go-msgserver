@@ -211,7 +211,7 @@ func (r *RabbitMQ) listenRetryProducer(producer RetryProducer,retry_nums int32 ,
 	table["x-dead-letter-routing-key"] = oldRoutingKey
 	table["x-dead-letter-exchange"] = oldExchangeName
 
-	table["x-message-ttl"] = int64(50000)
+	table["x-message-ttl"] = int64(20000)
 
 	_, err = r.channel.QueueDeclare(r.queueName, true, false, false, false, table)
 	if err != nil {
