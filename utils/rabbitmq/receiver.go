@@ -307,7 +307,7 @@ func (r *RabbitMQ) listenReceiver(receiver Receiver) (err error) {
 			return err
 		}
 	}
-	return 
+	return
 }
 
 
