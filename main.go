@@ -38,11 +38,11 @@ func main() {
 
 
 	//生产消息
-	//for i:=0;i<100;i++{
+	//for i:=0;i<10;i++{
 	//	utils.Ichunt2019MessageServer.RegisterProducer(t)
-	//	utils.Ichunt2019MessageServer.Start()
-	//}
 	//
+	//}
+	//utils.Ichunt2019MessageServer.Start()
 	//return
 
 
@@ -50,7 +50,7 @@ func main() {
 	for{
 		utils.Ichunt2019MessageServer.RegisterReceiver(t)
 		utils.Ichunt2019MessageServer.Start()
-		time.Sleep(time.Second*10)
+		time.Sleep(time.Second*1)
 
 	}
 
