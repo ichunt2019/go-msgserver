@@ -260,25 +260,25 @@ func (r *RabbitMQ) listenReceiver(receiver Receiver) (err error) {
 	// 验证链接是否正常
 	if r.channel == nil {
 		err = r.mqConnect()
+		if err != nil{
+			return errors.New(fmt.Sprintf("MQ注册队列失败:%s \n", err))
+		}
 	}
 	// 用于检查队列是否存在,已经存在不需要重复声明
 	_, err = r.channel.QueueDeclare(r.queueName, true, false, false, false, nil)
 	if err != nil {
-		fmt.Printf("MQ注册队列失败:%s \n", err)
-		return errors.New("bbvv")
+		return errors.New(fmt.Sprintf("MQ注册队列失败:%s \n", err))
 	}
 	// 绑定任务
 	err =  r.channel.QueueBind(r.queueName, r.routingKey, r.exchangeName, false, nil)
 	if err != nil {
-		fmt.Printf("绑定队列失败:%s \n", err)
-		return errors.New("bbvv")
+		return errors.New(fmt.Sprintf("绑定队列失败:%s \n", err))
 	}
 	// 获取消费通道,确保rabbitMQ一个一个发送消息
 	err =  r.channel.Qos(1, 0, false)
 	msgList, err :=  r.channel.Consume(r.queueName, "", false, false, false, false, nil)
 	if err != nil {
-		fmt.Printf("获取消费通道异常:%s \n", err)
-		return errors.New("bbvv")
+		return errors.New(fmt.Sprintf("获取消费通道异常:%s \n", err))
 	}
 	for msg := range msgList {
 
@@ -295,21 +295,19 @@ func (r *RabbitMQ) listenReceiver(receiver Receiver) (err error) {
 			}
 			err = msg.Ack(true)
 			if err != nil {
-				fmt.Printf("确认消息未完成异常:%s \n", err)
-				return errors.New("bbvv")
+				return errors.New(fmt.Sprintf("确认消息未完成异常:%s \n", err))
 			}
 		}else {
 			// 确认消息,必须为false
 			err = msg.Ack(true)
 
 			if err != nil {
-				fmt.Printf("确认消息完成异常:%s \n", err)
-				return errors.New("bbvv")
+				return errors.New(fmt.Sprintf("确认消息完成异常:%s \n", err))
 			}
 			return err
 		}
 	}
-	return err
+	return 
 }
 
 
