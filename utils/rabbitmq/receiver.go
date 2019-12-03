@@ -31,6 +31,7 @@ type Receiver interface {
 type RabbitMQ struct {
 	connection *amqp.Connection
 	channel *amqp.Channel
+	dns string
 	queueName   string            // 队列名称
 	routingKey  string            // key名称
 	exchangeName string           // 交换机名称
@@ -48,6 +49,7 @@ type QueueExchange struct {
 	RtKey   string           // key值
 	ExName  string           // 交换机名称
 	ExType  string           // 交换机类型
+	Dns     string			  //链接地址
 }
 
 // 链接rabbitMQ
@@ -55,7 +57,7 @@ func (r *RabbitMQ)mqConnect() {
 	var err error
 	//RabbitUrl := fmt.Sprintf("amqp://%s:%s@%s:%d/", "guest", "guest", "192.168.2.232", 5672)
 	//mqConn, err = amqp.Dial(RabbitUrl)
-	mqConn, err = amqp.Dial("amqp://guest:guest@192.168.2.232:5672/")
+	mqConn, err = amqp.Dial(r.dns)
 	r.connection = mqConn   // 赋值给RabbitMQ对象
 	if err != nil {
 		fmt.Printf("MQ打开链接失败:%s \n", err)
@@ -87,6 +89,7 @@ func New(q *QueueExchange) *RabbitMQ {
 		routingKey:q.RtKey,
 		exchangeName: q.ExName,
 		exchangeType: q.ExType,
+		dns:q.Dns,
 	}
 }
 
@@ -113,9 +116,22 @@ func (r *RabbitMQ) Start() {
 	return
 }
 
+type SendRbmqPro struct {
+	msgContent   string
+}
+
+// 实现生产者
+func (t *SendRbmqPro) MsgContent() string {
+	return t.msgContent
+}
+
+
+
 // 注册发送指定队列指定路由的生产者
-func (r *RabbitMQ) RegisterProducer(producer Producer) {
-	r.producerList = append(r.producerList, producer)
+func (r *RabbitMQ) RegisterProducer(msg string) {
+	a := &SendRbmqPro{msgContent:msg}
+	a.MsgContent()
+	r.producerList = append(r.producerList, a)
 }
 
 
@@ -310,6 +326,7 @@ func(r *RabbitMQ) retry_msg(Body []byte,retry_nums int32){
 		routingKey,
 		exchangeName,
 		"direct",
+		r.dns,
 	}
 	mq := New(queueExchange)
 	msg := fmt.Sprintf("%s",Body)

@@ -1,36 +1,27 @@
 package main
 
 import (
-	"fmt"
+	_ "fmt"
 	"go-msgserver/utils/rabbitmq"
+	"strconv"
 )
 
-type SendPro struct {
-	msgContent   string
-}
-
-// 实现生产者
-func (t *SendPro) MsgContent() string {
-	return t.msgContent
-}
-
 func main() {
-	msg := fmt.Sprintf("这是测试任务")
-	t := &SendPro{
-		msg,
-	}
-
-
 
 	queueExchange := &rabbitmq.QueueExchange{
 		"b_test_rabbit",
 		"b_test_rabbit",
 		"b_test_rabbit_mq",
 		"direct",
+		"amqp://guest:guest@192.168.2.232:5672/",
 	}
 	mq := rabbitmq.New(queueExchange)
-	mq.RegisterProducer(t)
+	for i := 0;i<10;i++{
+		mq.RegisterProducer("这是测试任务"+strconv.Itoa(i))
+	}
 	mq.Start()
+
+
 
 
 
