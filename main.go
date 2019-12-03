@@ -2,11 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"go-msgserver/utils"
-	_ "go-msgserver/utils/rabbitmq"
+	"go-msgserver/utils/rabbitmq"
 	"time"
-	_ "time"
 )
 
 type TestPro struct {
@@ -21,9 +19,9 @@ func (t *TestPro) MsgContent() string {
 //// 实现消费者 消费消息失败 自动进入延时尝试  尝试3次之后入库db
 func (t *TestPro) Consumer(dataByte []byte) error {
 	fmt.Println(string(dataByte))
-	time.Sleep(time.Microsecond)
-	return errors.New("消息处理失败")
-	//return nil
+	//time.Sleep(time.Second*1)
+	//return errors.New("消息处理失败")
+	return nil
 }
 
 func main() {
@@ -38,7 +36,7 @@ func main() {
 
 
 	//生产消息
-	//for i:=0;i<10;i++{
+	//for i:=0;i<100;i++{
 	//	utils.Ichunt2019MessageServer.RegisterProducer(t)
 	//
 	//}
@@ -47,11 +45,25 @@ func main() {
 
 
 	//消费消息
-	for{
-		utils.Ichunt2019MessageServer.RegisterReceiver(t)
-		utils.Ichunt2019MessageServer.Start()
-		time.Sleep(time.Second*1)
+	//for{
+	//	fmt.Println("开始任务....")
+	//	utils.Ichunt2019MessageServer.RegisterReceiver(t)
+	//	utils.Ichunt2019MessageServer.Start()
+	//	time.Sleep(time.Second*1)
+	//}
 
+	for{
+		queueExchange := &rabbitmq.QueueExchange{
+			"b_test_rabbit",
+			"b_test_rabbit",
+			"b_test_rabbit_mq",
+			"direct",
+		}
+		mq := rabbitmq.New(queueExchange)
+		mq.RegisterReceiver(t)
+		mq.Start()
+		time.Sleep(time.Second)
 	}
+
 
 }

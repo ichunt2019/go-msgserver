@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"sync"
+	"time"
 )
 
 
@@ -92,28 +93,23 @@ func New(q *QueueExchange) *RabbitMQ {
 // 启动RabbitMQ客户端,并初始化
 func (r *RabbitMQ) Start() {
 	// 开启监听生产者发送任务
-	//defer r.mqClose()
 	for _, producer := range r.producerList {
-		//go r.listenProducer(producer)
 		r.listenProducer(producer)
 	}
-
-	//for _, retryProducer := range r.retryProducerList {
-	//	//go r.listenProducer(producer)
-	//	r.listenRetryProducer(retryProducer)
-	//}
 
 
 	// 开启监听接收者接收任务
 	for _, receiver := range r.receiverList {
+		//r.listenReceiver(receiver)
 		r.wg.Add(1)
 		go func() {
+
 			r.listenReceiver(receiver)
 		}()
-		 //r.listenReceiver(receiver)
+
 	}
 	r.wg.Wait()
-	//time.Sleep(time.Second)
+	time.Sleep(1*time.Second)
 	return
 }
 
@@ -122,15 +118,10 @@ func (r *RabbitMQ) RegisterProducer(producer Producer) {
 	r.producerList = append(r.producerList, producer)
 }
 
-// 注册发送指定队列指定路由的生产者
-//func (r *RabbitMQ) RegisterRetryProducer(retryProducerList RetryProducer,retry_nums int32) {
-//	r.retryProducerList = append(r.retryProducerList, retryProducerList)
-//}
+
 
 // 发送任务
 func (r *RabbitMQ) listenProducer(producer Producer) {
-
-
 	// 验证链接是否正常,否则重新链接
 	if r.channel == nil {
 		r.mqConnect()
@@ -177,7 +168,7 @@ func (r *RabbitMQ) listenProducer(producer Producer) {
 
 func (r *RabbitMQ) listenRetryProducer(producer RetryProducer,retry_nums int32 ,args ...string) {
 	fmt.Println("消息处理失败，进入延时队列.....")
-	defer r.mqClose()
+	//defer r.mqClose()
 	// 验证链接是否正常,否则重新链接
 	if r.channel == nil {
 		r.mqConnect()
@@ -269,6 +260,7 @@ func (r *RabbitMQ) listenReceiver(receiver Receiver) {
 		return
 	}
 	for msg := range msgList {
+
 		retry_nums := msg.Headers["retry_nums"].(int32)
 		// 处理数据
 		err := receiver.Consumer(msg.Body)
@@ -288,6 +280,7 @@ func (r *RabbitMQ) listenReceiver(receiver Receiver) {
 		}else {
 			// 确认消息,必须为false
 			err = msg.Ack(true)
+
 			if err != nil {
 				fmt.Printf("确认消息完成异常:%s \n", err)
 				return
