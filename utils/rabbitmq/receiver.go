@@ -112,9 +112,11 @@ func (r *RabbitMQ) Start() {
 
 	}
 	r.wg.Wait()
-	time.Sleep(1*time.Second)
+	time.Sleep(time.Microsecond*100)
 	return
 }
+
+
 
 type SendRbmqPro struct {
 	msgContent   string
@@ -305,6 +307,7 @@ func (r *RabbitMQ) listenReceiver(receiver Receiver) {
 		}
 	}
 }
+
 
 
 type retryPro struct {
