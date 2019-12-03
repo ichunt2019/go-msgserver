@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"errors"
 	"fmt"
 	"github.com/streadway/amqp"
 	"sync"
@@ -53,20 +54,23 @@ type QueueExchange struct {
 }
 
 // 链接rabbitMQ
-func (r *RabbitMQ)mqConnect() {
-	var err error
+func (r *RabbitMQ)mqConnect() (err error){
+	//var err error
 	//RabbitUrl := fmt.Sprintf("amqp://%s:%s@%s:%d/", "guest", "guest", "192.168.2.232", 5672)
 	//mqConn, err = amqp.Dial(RabbitUrl)
 	mqConn, err = amqp.Dial(r.dns)
 	r.connection = mqConn   // 赋值给RabbitMQ对象
 	if err != nil {
-		fmt.Printf("MQ打开链接失败:%s \n", err)
+		return err
+		//fmt.Printf("MQ打开链接失败:%s \n", err)
 	}
 	mqChan, err = mqConn.Channel()
 	r.channel = mqChan  // 赋值给RabbitMQ对象
 	if err != nil {
-		fmt.Printf("MQ打开管道失败:%s \n", err)
+		return err
+		//fmt.Printf("MQ打开管道失败:%s \n", err)
 	}
+	return err
 }
 
 // 关闭RabbitMQ连接
@@ -94,10 +98,10 @@ func New(q *QueueExchange) *RabbitMQ {
 }
 
 // 启动RabbitMQ客户端,并初始化
-func (r *RabbitMQ) Start() {
+func (r *RabbitMQ) Start() (err error){
 	// 开启监听生产者发送任务
 	for _, producer := range r.producerList {
-		r.listenProducer(producer)
+		err = r.listenProducer(producer)
 	}
 
 
@@ -106,15 +110,15 @@ func (r *RabbitMQ) Start() {
 		//r.listenReceiver(receiver)
 		r.wg.Add(1)
 		go func() {
-
-			r.listenReceiver(receiver)
+			err = r.listenReceiver(receiver)
 		}()
 
 	}
 	r.wg.Wait()
 	time.Sleep(time.Microsecond*100)
-	return
+	return err
 }
+
 
 
 
@@ -139,23 +143,23 @@ func (r *RabbitMQ) RegisterProducer(msg string) {
 
 
 // 发送任务
-func (r *RabbitMQ) listenProducer(producer Producer) {
+func (r *RabbitMQ) listenProducer(producer Producer) (err error){
 	// 验证链接是否正常,否则重新链接
 	if r.channel == nil {
-		r.mqConnect()
+		err = r.mqConnect()
+		if err !=nil {
+			return err
+		}
 	}
-
-	err :=  r.channel.ExchangeDeclare(r.exchangeName, r.exchangeType, true, false, false, false, nil)
+	err =  r.channel.ExchangeDeclare(r.exchangeName, r.exchangeType, true, false, false, false, nil)
 	if err != nil {
 		fmt.Printf("MQ注册交换机失败:%s \n", err)
-		return
 	}
 
 
 	_, err = r.channel.QueueDeclare(r.queueName, true, false, false, false, nil)
 	if err != nil {
 		fmt.Printf("MQ注册队列失败:%s \n", err)
-		return
 	}
 
 
@@ -163,7 +167,6 @@ func (r *RabbitMQ) listenProducer(producer Producer) {
 	err = r.channel.QueueBind(r.queueName, r.routingKey, r.exchangeName, true,nil)
 	if err != nil {
 		fmt.Printf("MQ绑定队列失败:%s \n", err)
-		return
 	}
 
 	header := make(map[string]interface{},1)
@@ -179,8 +182,8 @@ func (r *RabbitMQ) listenProducer(producer Producer) {
 
 	if err != nil {
 		fmt.Printf("MQ任务发送失败:%s \n", err)
-		return
 	}
+	return err
 }
 
 
@@ -248,34 +251,34 @@ func (r *RabbitMQ) RegisterReceiver(receiver Receiver) {
 	r.mu.Unlock()
 }
 
-// 监听接收者接收任务
-func (r *RabbitMQ) listenReceiver(receiver Receiver) {
+// 监听接收者接收任务 消费者
+func (r *RabbitMQ) listenReceiver(receiver Receiver) (err error) {
 	// 处理结束关闭链接
 	defer r.mqClose()
 	defer r.wg.Done()
 	//defer
 	// 验证链接是否正常
 	if r.channel == nil {
-		r.mqConnect()
+		err = r.mqConnect()
 	}
 	// 用于检查队列是否存在,已经存在不需要重复声明
-	_, err := r.channel.QueueDeclare(r.queueName, true, false, false, false, nil)
+	_, err = r.channel.QueueDeclare(r.queueName, true, false, false, false, nil)
 	if err != nil {
 		fmt.Printf("MQ注册队列失败:%s \n", err)
-		return
+		return errors.New("bbvv")
 	}
 	// 绑定任务
 	err =  r.channel.QueueBind(r.queueName, r.routingKey, r.exchangeName, false, nil)
 	if err != nil {
 		fmt.Printf("绑定队列失败:%s \n", err)
-		return
+		return errors.New("bbvv")
 	}
 	// 获取消费通道,确保rabbitMQ一个一个发送消息
 	err =  r.channel.Qos(1, 0, false)
 	msgList, err :=  r.channel.Consume(r.queueName, "", false, false, false, false, nil)
 	if err != nil {
 		fmt.Printf("获取消费通道异常:%s \n", err)
-		return
+		return errors.New("bbvv")
 	}
 	for msg := range msgList {
 
@@ -293,7 +296,7 @@ func (r *RabbitMQ) listenReceiver(receiver Receiver) {
 			err = msg.Ack(true)
 			if err != nil {
 				fmt.Printf("确认消息未完成异常:%s \n", err)
-				return
+				return errors.New("bbvv")
 			}
 		}else {
 			// 确认消息,必须为false
@@ -301,11 +304,12 @@ func (r *RabbitMQ) listenReceiver(receiver Receiver) {
 
 			if err != nil {
 				fmt.Printf("确认消息完成异常:%s \n", err)
-				return
+				return errors.New("bbvv")
 			}
-			return
+			return err
 		}
 	}
+	return err
 }
 
 

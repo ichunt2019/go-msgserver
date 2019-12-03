@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"go-msgserver/utils/rabbitmq"
 	"time"
 )
@@ -14,8 +13,8 @@ type RecvPro struct {
 //// 实现消费者 消费消息失败 自动进入延时尝试  尝试3次之后入库db
 func (t *RecvPro) Consumer(dataByte []byte) error {
 	fmt.Println(string(dataByte))
-	return errors.New("顶顶顶顶")
-	//return nil
+	//return errors.New("顶顶顶顶")
+	return nil
 }
 
 
@@ -40,7 +39,11 @@ func main() {
 
 		mq := rabbitmq.New(queueExchange)
 		mq.RegisterReceiver(t)
-		mq.Start()
+		err :=mq.Start()
+		if err != nil{
+
+			fmt.Println(err)
+		}
 		time.Sleep(time.Second)
 	}
 

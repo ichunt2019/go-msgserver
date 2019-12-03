@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	_ "fmt"
 	"go-msgserver/utils/rabbitmq"
 	"strconv"
@@ -19,7 +20,10 @@ func main() {
 	for i := 0;i<10;i++{
 		mq.RegisterProducer("这是测试任务"+strconv.Itoa(i))
 	}
-	mq.Start()
+	err := mq.Start()
+	if(err != nil){
+		fmt.Println("发送消息失败")
+	}
 
 
 
