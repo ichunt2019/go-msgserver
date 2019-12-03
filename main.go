@@ -21,6 +21,7 @@ func (t *TestPro) MsgContent() string {
 //// 实现消费者 消费消息失败 自动进入延时尝试  尝试3次之后入库db
 func (t *TestPro) Consumer(dataByte []byte) error {
 	fmt.Println(string(dataByte))
+	time.Sleep(time.Microsecond)
 	return errors.New("消息处理失败")
 	//return nil
 }
@@ -34,9 +35,14 @@ func main() {
 
 	utils.Init("rabbitmq","b_test_rabbit","b_test_rabbit","b_test_rabbit_mq")
 
+
+
 	//生产消息
-	//utils.Ichunt2019MessageServer.RegisterProducer(t)
-	//utils.Ichunt2019MessageServer.Start()
+	//for i:=0;i<100;i++{
+	//	utils.Ichunt2019MessageServer.RegisterProducer(t)
+	//	utils.Ichunt2019MessageServer.Start()
+	//}
+	//
 	//return
 
 
@@ -44,7 +50,7 @@ func main() {
 	for{
 		utils.Ichunt2019MessageServer.RegisterReceiver(t)
 		utils.Ichunt2019MessageServer.Start()
-		time.Sleep(time.Second*2)
+		time.Sleep(time.Second*10)
 
 	}
 
