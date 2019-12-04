@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"go-msgserver/utils/rabbitmq"
+	"github.com/ichunt2019/go-msgserver/utils/rabbitmq"
 	"time"
 	_ "errors"
 )
