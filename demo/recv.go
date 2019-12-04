@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/ichunt2019/go-msgserver/utils/rabbitmq"
 	"time"
-	_ "errors"
+	"errors"
 )
 
 type RecvPro struct {
@@ -14,8 +14,8 @@ type RecvPro struct {
 //// 实现消费者 消费消息失败 自动进入延时尝试  尝试3次之后入库db
 func (t *RecvPro) Consumer(dataByte []byte) error {
 	fmt.Println(string(dataByte))
-	//return errors.New("顶顶顶顶")
-	return nil
+	return errors.New("顶顶顶顶")
+	//return nil
 }
 
 
@@ -30,9 +30,9 @@ func main() {
 
 
 	queueExchange := &rabbitmq.QueueExchange{
-		"b_test_rabbit",
-		"b_test_rabbit",
-		"b_test_rabbit_mq",
+		"fengkong_static_count",
+		"fengkong_static_count",
+		"fengkong_exchange",
 		"direct",
 		"amqp://guest:guest@192.168.2.232:5672/",
 	}

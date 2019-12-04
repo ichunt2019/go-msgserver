@@ -282,7 +282,10 @@ func (r *RabbitMQ) listenReceiver(receiver Receiver) (err error) {
 	}
 	for msg := range msgList {
 
-		retry_nums := msg.Headers["retry_nums"].(int32)
+		retry_nums,ok := msg.Headers["retry_nums"].(int32)
+		if(!ok){
+			retry_nums = int32(0)
+		}
 		// 处理数据
 		err := receiver.Consumer(msg.Body)
 		if err!=nil {
