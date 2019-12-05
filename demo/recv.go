@@ -18,6 +18,14 @@ func (t *RecvPro) Consumer(dataByte []byte) error {
 	//return nil
 }
 
+//消息已经消费3次 失败了 请进行处理
+func (t *RecvPro) FailAction(dataByte []byte) error {
+	fmt.Println(string(dataByte))
+	fmt.Println("任务处理失败了，我要进入db日志库了")
+	fmt.Println("任务处理失败了，发送钉钉消息通知主人")
+	return nil
+}
+
 
 
 func main() {
@@ -30,8 +38,8 @@ func main() {
 
 
 	queueExchange := &rabbitmq.QueueExchange{
-		"fengkong_static_count",
-		"fengkong_static_count",
+		"fengkong_dong_count",
+		"fengkong_dong_count",
 		"fengkong_exchange",
 		"direct",
 		"amqp://guest:guest@192.168.2.232:5672/",

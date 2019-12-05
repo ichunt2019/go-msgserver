@@ -9,14 +9,14 @@ import (
 func main() {
 
 	queueExchange := &rabbitmq.QueueExchange{
-		"b_test_rabbit",
-		"b_test_rabbit",
-		"b_test_rabbit_mq",
+		"fengkong_dong_count",
+		"fengkong_dong_count",
+		"fengkong_exchange",
 		"direct",
 		"amqp://guest:guest@192.168.2.232:5672/",
 	}
 	mq := rabbitmq.New(queueExchange)
-	for i := 0;i<100;i++{
+	for i := 0;i<1;i++{
 		mq.RegisterProducer("{\"com_credits_id\":\"2\",\"erp_company_code\":\"LX001\"}")
 	}
 	err := mq.Start()
