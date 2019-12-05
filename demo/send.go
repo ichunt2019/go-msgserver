@@ -4,7 +4,6 @@ import (
 	"fmt"
 	_ "fmt"
 	"github.com/ichunt2019/go-msgserver/utils/rabbitmq"
-	"strconv"
 )
 
 func main() {
@@ -17,8 +16,8 @@ func main() {
 		"amqp://guest:guest@192.168.2.232:5672/",
 	}
 	mq := rabbitmq.New(queueExchange)
-	for i := 0;i<10;i++{
-		mq.RegisterProducer("这是测试任务"+strconv.Itoa(i))
+	for i := 0;i<100;i++{
+		mq.RegisterProducer("{\"com_credits_id\":\"2\",\"erp_company_code\":\"LX001\"}")
 	}
 	err := mq.Start()
 	if(err != nil){
