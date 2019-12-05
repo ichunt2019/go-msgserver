@@ -16,7 +16,7 @@ func main() {
 		"amqp://guest:guest@192.168.2.232:5672/",
 	}
 	mq := rabbitmq.New(queueExchange)
-	for i := 0;i<1;i++{
+	for i := 0;i<10;i++{
 		mq.RegisterProducer("{\"com_credits_id\":\"2\",\"erp_company_code\":\"LX001\"}")
 	}
 	err := mq.Start()
