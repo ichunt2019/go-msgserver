@@ -190,7 +190,7 @@ func (r *RabbitMQ) listenProducer(producer Producer) (err error){
 
 func (r *RabbitMQ) listenRetryProducer(producer RetryProducer,retry_nums int32 ,args ...string) {
 	fmt.Println("消息处理失败，进入延时队列.....")
-	//defer r.mqClose()
+	defer r.mqClose()
 	// 验证链接是否正常,否则重新链接
 	if r.channel == nil {
 		r.mqConnect()
@@ -262,9 +262,15 @@ func (r *RabbitMQ) listenReceiver(receiver Receiver) (err error) {
 	if r.channel == nil {
 		err = r.mqConnect()
 		if err != nil{
-			return errors.New(fmt.Sprintf("MQ注册队列失败:%s \n", err))
+			return errors.New(fmt.Sprintf("MQ连接失败:%s \n", err))
 		}
 	}
+	err =  r.channel.ExchangeDeclare(r.exchangeName, r.exchangeType, true, false, false, false, nil)
+	if err != nil {
+		fmt.Printf("MQ注册交换机失败:%s \n", err)
+		return
+	}
+
 	// 用于检查队列是否存在,已经存在不需要重复声明
 	_, err = r.channel.QueueDeclare(r.queueName, true, false, false, false, nil)
 	if err != nil {
