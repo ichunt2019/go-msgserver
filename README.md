@@ -90,3 +90,29 @@ DEMO
 消息处理失败 入库db{"com_credits_id":"2","erp_company_code":"LX001"}
 任务处理失败了，我要进入db日志库了
 任务处理失败了，发送钉钉消息通知主人
+
+
+
+## 并发执行
+    for{
+    	var wg sync.WaitGroup
+    	fmt.Println("开始执行任务....")
+    	for i := 0;i<10;i++{
+    	wg.Add(1)
+    	go func(wg *sync.WaitGroup){
+    	mq := rabbitmq.New(queueExchange)
+    	mq.RegisterReceiver(t)
+    	err :=mq.Start()
+    	if err != nil{
+    
+    	fmt.Println(err)
+    	}
+    	wg.Done()
+    	}(&wg)
+    	}
+    	wg.Wait()
+    	fmt.Println("执行任务完成....")
+    	time.Sleep(time.Microsecond*10)
+    }
+
+
